@@ -2,13 +2,13 @@
 {
     public class Card
     {
-        public string CardNumber { get; set; }
+        public string CardNumber { get; }
 
-        public string Owner { get; set; }
+        public string Owner { get; }
 
-        public string Password { get; set; }
+        public string Password { get; }
 
-        public CardBrands Brand { get; set; }
+        public CardBrands Brand { get; }
 
         public decimal Balance { get; set; }
 
@@ -20,5 +20,11 @@
             Brand = brand;
             Balance = balance;
         }
+
+        public bool VerifyPassword (string cardPassword) => cardPassword == Password;
+
+        public decimal GetBalance() => Balance;
+
+        public decimal Withdraw(decimal amount) => Balance -= amount;
     }
 }
