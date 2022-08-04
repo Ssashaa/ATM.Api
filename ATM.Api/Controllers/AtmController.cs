@@ -1,4 +1,6 @@
-﻿using ATM.Api.Models;
+﻿using ATM.Api.Controllers.Requests;
+using ATM.Api.Controllers.Responses;
+using ATM.Api.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ATM.Api.Controllers
@@ -13,8 +15,6 @@ namespace ATM.Api.Controllers
             new ("5200000000001005", "Levi Downs", "teEAxnqg", CardBrands.MasterCard, 400)
         };
 
-        public sealed record AuthorizeMode (string CardPassword);
-
         [HttpGet("cards/{cardNumber}/init")]
         public IActionResult Init([FromRoute] string cardNumber)
         {
@@ -23,12 +23,12 @@ namespace ATM.Api.Controllers
                 : NotFound(new AtmResponce("Your card isn't in the system!"));
         }
 
-        [HttpPost("cards/{cardNumber}/authorize")]
-        public IActionResult Authorize([FromRoute] string cardNumber, [FromBody] AuthorizeMode model)
+        [HttpPost("cards/authorize")]
+        public IActionResult Authorize([FromBody] CardAuthorizeRequest request)
         {
-            return Cards.SingleOrDefault(x => x.CardNumber == cardNumber) switch
+            return Cards.SingleOrDefault(x => x.CardNumber == request.CardNumber) switch
             {
-                { } card => card.VerifyPassword(model.CardPassword)
+                { } card => card.VerifyPassword(request.CardPassword)
                 ? Ok(new AtmResponce("Your card is in the system!"))
                 : Unauthorized(new AtmResponce("Invalid password")),
               _ => NotFound()
@@ -45,17 +45,17 @@ namespace ATM.Api.Controllers
             };
         }
 
-        [HttpPut("cards/{cardNumber}/withdraw/{sum}")]
-        public IActionResult Withdraw(string cardNumber, int sum)
+        [HttpPut("cards/withdraw")]
+        public IActionResult Withdraw([FromBody] CardWithdrawRequest request)
         {
-            var card = Cards.SingleOrDefault(x => x.CardNumber == cardNumber);
+            var card = Cards.SingleOrDefault(x => x.CardNumber == request.CardNumber);
 
             if (card is null)
             {
                 return NotFound();
             }
 
-            card.Withdraw(sum);
+            card.Withdraw(request.Amount);
 
             return Ok(new AtmResponce("The operation was successful!"));
         }

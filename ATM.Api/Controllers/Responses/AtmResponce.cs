@@ -1,4 +1,4 @@
-﻿namespace ATM.Api.Models
+﻿namespace ATM.Api.Controllers.Responses
 {
     public class AtmResponce
     {
