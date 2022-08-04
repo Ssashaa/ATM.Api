@@ -35,7 +35,7 @@ namespace ATM.Api.Controllers
             };
         }
 
-        [HttpGet("cards/{cardNumber}/getBalance")]
+        [HttpGet("cards/{cardNumber}/balance")]
         public IActionResult GetBalance([FromRoute] string cardNumber)
         {
             return Cards.SingleOrDefault(x => x.CardNumber == cardNumber) switch
