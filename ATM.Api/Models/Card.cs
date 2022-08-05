@@ -10,7 +10,7 @@
 
         public CardBrands Brand { get; }
 
-        public decimal Balance { get; set; }
+        private decimal Balance { get; set; }
 
         public Card(string cardNumber, string owner, string password, CardBrands brand, decimal balance)
         {
@@ -21,10 +21,18 @@
             Balance = balance;
         }
 
-        public bool VerifyPassword (string cardPassword) => cardPassword == Password;
+        public bool IsPasswordEqual(string cardPassword) => cardPassword == Password;
 
         public decimal GetBalance() => Balance;
 
-        public decimal Withdraw(decimal amount) => Balance -= amount;
+        public void Withdraw(decimal amount)
+        {
+            if (amount > GetBalance())
+            {
+                throw new ArgumentOutOfRangeException(nameof(amount), "The balance on your card is less than the amount!");
+            }
+
+            Balance -= amount;
+        }
     }
 }

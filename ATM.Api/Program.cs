@@ -1,6 +1,4 @@
-using ATM.Api;
-using ATM.Api.Service.Interfaces;
-using ATM.Api.Services;
+using ATM.Api.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
