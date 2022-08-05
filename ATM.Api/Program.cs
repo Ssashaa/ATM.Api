@@ -1,5 +1,10 @@
+using ATM.Api;
+using ATM.Api.Service.Interfaces;
+using ATM.Api.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.ConfigureServices();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
