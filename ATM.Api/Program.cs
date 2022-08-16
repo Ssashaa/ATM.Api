@@ -1,3 +1,4 @@
+using ATM.Api.Helpers;
 using ATM.Api.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +8,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 
 var app = builder.Build();
+
+app.UseMiddleware<ErrorHandlerMiddleware>();
 
 app
     .UseRouting()

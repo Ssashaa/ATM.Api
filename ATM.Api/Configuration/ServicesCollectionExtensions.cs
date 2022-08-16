@@ -1,5 +1,5 @@
 ﻿using ATM.Api.Services;
-using ATM.Api.Service.Interfaces;
+using ATM.Api.Services.Interfaces;
 
 namespace ATM.Api.Configuration
 {
@@ -8,6 +8,7 @@ namespace ATM.Api.Configuration
         public static void ConfigureServices(this IServiceCollection services)
         {
             services.AddSingleton<IAtmService, AtmService>();
+            services.AddSingleton<IBankService, BankService>();
         }
     }
 }
