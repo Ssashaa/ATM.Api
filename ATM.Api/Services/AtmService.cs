@@ -1,13 +1,18 @@
-﻿using ATM.Api.Models;
-using ATM.Api.Services.Interfaces;
+﻿using ATM.Api.Services.Interfaces;
 
 namespace ATM.Api.Services
 {
     public sealed class AtmService : IAtmService
     {
+        private readonly IBankService _bankService;
         public decimal TotalAmount { get; set; } = 10_000;
 
-        public void WithdrawAtm(decimal amount)
+        public AtmService(IBankService bankService)
+        {
+            _bankService = bankService;
+        }
+
+        public void Withdraw(string cardNumber, decimal amount)
         {
             if (amount <= 0)
             {
@@ -18,6 +23,9 @@ namespace ATM.Api.Services
             {
                 throw new ArgumentOutOfRangeException("Insufficient funds at the ATM!");
             }
+
+            _bankService.VerifyCardLimit(cardNumber, amount);
+            _bankService.GetCard(cardNumber).Withdraw(amount);
 
             TotalAmount -= amount;
         }

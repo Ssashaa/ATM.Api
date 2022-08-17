@@ -10,10 +10,12 @@ namespace ATM.Api.Controllers
     public class AtmController : Controller
     {
         private readonly IBankService _bankService;
+        private readonly IAtmService _atmService;
 
-        public AtmController(IBankService bankService)
+        public AtmController(IBankService bankService, IAtmService atmService)
         {
             _bankService = bankService;
+            _atmService = atmService;   
         }
 
         [HttpGet("{cardNumber}/init")]
@@ -43,7 +45,7 @@ namespace ATM.Api.Controllers
         [HttpPost("withdraw")]
         public IActionResult Withdraw([FromBody] CardWithdrawRequest request)
         {
-            _bankService.Withdraw(request.CardNumber, request.Amount);
+            _atmService.Withdraw(request.CardNumber, request.Amount);
 
             return Ok(new AtmResponce("The operation was successful!"));
         }

@@ -1,4 +1,6 @@
-﻿namespace ATM.Api.Services.Interfaces
+﻿using ATM.Api.Models;
+
+namespace ATM.Api.Services.Interfaces
 {
     public interface IBankService
     {
@@ -6,8 +8,9 @@
 
         public bool VerifyPassword(string cardNumber, string cardPassword);
 
-        public void Withdraw(string cardNumber, decimal amount);
+        public bool VerifyCardLimit(string cardNumber, decimal amount);
 
         public decimal GetCardBalance(string cardNumber);
+        public Card GetCard(string cardNumber);
     }
 }
