@@ -1,12 +1,16 @@
 ﻿using ATM.Api.Models;
 using ATM.Api.Services.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ATM.Api.Services;
 
 public class BankService : IBankService
 {
+    private const string initKey = "init";
+    private const string authorizeKey = "author";
     private const int LimitVisa = 200;
     private const int LimitMasterCard = 300;
+    private IMemoryCache _cache;
 
     private static readonly IReadOnlyCollection<Card> Cards = new List<Card>
     {
@@ -14,15 +18,44 @@ public class BankService : IBankService
         new ("5200000000001005", "Levi Downs", "teEAxnqg", CardBrands.MasterCard, 400)
     };
 
-    public bool IsCardExist(string cardNumber) => Cards.Any(x => x.CardNumber == cardNumber);
+    public BankService (IMemoryCache cache)
+    {
+        _cache = cache;
+    }
+
+    public bool IsCardExist(string cardNumber)
+    {
+        if (Cards.Any(x => x.CardNumber == cardNumber))
+        {
+            _cache.Set(initKey, cardNumber);
+            return true;
+        }
+
+        throw new InvalidOperationException("Pass identification and authorization!");
+    }
 
     public decimal GetCardBalance(string cardNumber)
-        => GetCard(cardNumber)
-        .GetBalance();
+    {
+        if (_cache.TryGetValue(authorizeKey, out string token))
+        {
+            _cache.Remove(authorizeKey);
+            return GetCard(cardNumber).GetBalance();
+        }
+
+        throw new InvalidOperationException("Pass identification and authorization!");
+    }
 
     public bool VerifyPassword(string cardNumber, string cardPassword)
-        => GetCard(cardNumber)
-        .IsPasswordEqual(cardPassword);
+    {
+        if (_cache.TryGetValue(initKey, out string token) && GetCard(cardNumber).IsPasswordEqual(cardPassword))
+        {
+            _cache.Remove(initKey);
+            _cache.Set(authorizeKey, cardPassword);
+            return true;
+        }
+
+        throw new InvalidOperationException("Pass identification and authorization!");
+    }
 
     public Card GetCard(string cardNumber) => Cards.Single(x => x.CardNumber == cardNumber);
 
@@ -30,13 +63,20 @@ public class BankService : IBankService
     {
         var card = GetCard(cardNumber);
 
-        return (card.Brand, amount) switch
+        if (_cache.TryGetValue(authorizeKey, out string token))
         {
-            { Brand: CardBrands.Visa, amount: > LimitVisa } =>
-                throw new InvalidOperationException($"One time {card.Brand} withdraw limit is {LimitVisa}"),
-            { Brand: CardBrands.MasterCard, amount: > LimitMasterCard } =>
-                throw new InvalidOperationException($"One time {card.Brand} withdraw limit is {LimitMasterCard}"),
-            _ => true
-        };
+            _cache.Remove(authorizeKey);
+
+            return (card.Brand, amount) switch
+            {
+                { Brand: CardBrands.Visa, amount: > LimitVisa } =>
+                    throw new InvalidOperationException($"One time {card.Brand} withdraw limit is {LimitVisa}"),
+                { Brand: CardBrands.MasterCard, amount: > LimitMasterCard } =>
+                    throw new InvalidOperationException($"One time {card.Brand} withdraw limit is {LimitMasterCard}"),
+                _ => true
+            };
+        }
+
+        throw new InvalidOperationException("Pass identification and authorization!");
     }
 }

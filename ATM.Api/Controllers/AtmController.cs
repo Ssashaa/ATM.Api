@@ -15,14 +15,14 @@ namespace ATM.Api.Controllers
         public AtmController(IBankService bankService, IAtmService atmService)
         {
             _bankService = bankService;
-            _atmService = atmService;   
+            _atmService = atmService;
         }
 
         [HttpGet("{cardNumber}/init")]
         public IActionResult Init([FromRoute] string cardNumber)
         {
             return _bankService.IsCardExist(cardNumber)
-                ? Ok(new AtmResponce("Your card is in the system!"))
+                ? Ok(new AtmResponce($"Your card in the system!"))
                 : NotFound(new AtmResponce("Your card isn't in the system!"));
         }
 

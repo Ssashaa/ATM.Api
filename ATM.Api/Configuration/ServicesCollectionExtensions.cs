@@ -9,6 +9,7 @@ namespace ATM.Api.Configuration
         {
             services.AddSingleton<IAtmService, AtmService>();
             services.AddSingleton<IBankService, BankService>();
+            services.AddMemoryCache();
         }
     }
 }
