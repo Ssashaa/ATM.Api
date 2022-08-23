@@ -1,17 +1,12 @@
-﻿using ATM.Api.Models;
+﻿namespace ATM.Api.Services.Interfaces;
 
-namespace ATM.Api.Services.Interfaces
+public interface IAtmService
 {
-    public interface IAtmService
-    {
-        //public bool IsCardExist(string cardNumber);
+    public bool IsCardExist(string cardNumber);
 
-        //public bool VerifyPassword(string cardNumber, string cardPassword);
+    public bool VerifyPassword(string cardNumber, string cardPassword);
 
-        //public void Withdraw(string cardNumber, decimal amount);
+    public decimal GetCardBalance(string cardNumber);
 
-        //public decimal GetCardBalance(string cardNumber);
-
-        public void Withdraw(string cardNumber, decimal amount);
-    }
+    public void Withdraw(string cardNumber, decimal amount);
 }

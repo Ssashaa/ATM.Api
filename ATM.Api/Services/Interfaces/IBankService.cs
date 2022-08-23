@@ -12,7 +12,6 @@ namespace ATM.Api.Services.Interfaces
 
         public decimal GetCardBalance(string cardNumber);
 
-        //
         public Card GetCard(string cardNumber);
     }
 }

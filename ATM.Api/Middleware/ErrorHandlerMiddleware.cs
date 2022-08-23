@@ -20,10 +20,16 @@ public class ErrorHandlerMiddleware
         {
             await _next(context);
         }
-        catch(InvalidOperationException ex)
+        catch (InvalidOperationException ex)
         {
             await context.Response
                 .WithStatusCode(Status422UnprocessableEntity)
+                .WithJsonContent(ex.Message);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            await context.Response
+                .WithStatusCode(Status401Unauthorized)
                 .WithJsonContent(ex.Message);
         }
         catch (Exception error)
