@@ -20,8 +20,7 @@ namespace ATM.Api.Services
             if (_bankService.IsCardExist(cardNumber))
             {
                 _broker.StartStream(cardNumber, new AtmEvent());
-                _broker.AppendEvent(cardNumber, new InitEvent());
-
+                _broker.AppendEvent(cardNumber, new CardInit());
                 return true;
             }
 
@@ -30,22 +29,30 @@ namespace ATM.Api.Services
 
         public bool VerifyPassword(string cardNumber, string cardPassword)
         {
-            if (_broker.FindEvent<InitEvent>(cardNumber) is { }
-                && _bankService.VerifyPassword(cardNumber, cardPassword))
+            var @event = _broker.GetLastEvent(cardNumber);
+
+            if (@event is not CardInit)
             {
-                _broker.AppendEvent(cardNumber, new AuthorizeEvent());
+                throw new UnauthorizedAccessException("Pass identification!");
+            }
+
+            if(_bankService.VerifyPassword(cardNumber, cardPassword))
+            {
+                _broker.AppendEvent(cardNumber, new CardAuthorized());
 
                 return true;
             }
 
-            throw new UnauthorizedAccessException("Pass identification and authorization!");
+            return false;
         }
 
         public decimal GetCardBalance(string cardNumber)
         {
-            if (_broker.GetLastEvent(cardNumber) is not AuthorizeEvent)
+            var @event = _broker.GetLastEvent(cardNumber);
+
+            if (@event is not CardAuthorized)
             {
-                throw new UnauthorizedAccessException("Pass identification and authorization!");
+                throw new InvalidOperationException("Could not perform unauthorized operation");
             }
 
             _broker.AppendEvent(cardNumber, new BalanceEvent());
@@ -55,6 +62,13 @@ namespace ATM.Api.Services
 
         public void Withdraw(string cardNumber, decimal amount)
         {
+            var @event = _broker.GetLastEvent(cardNumber);
+
+            if (@event is not CardAuthorized)
+            {
+                throw new UnauthorizedAccessException("Pass identification and authorization!");
+            }
+
             if (amount <= 0)
             {
                 throw new ArgumentOutOfRangeException("Invalid amount entered!");
@@ -63,11 +77,6 @@ namespace ATM.Api.Services
             if (amount > TotalAmount)
             {
                 throw new ArgumentOutOfRangeException("Insufficient funds at the ATM!");
-            }
-
-            if (_broker.GetLastEvent(cardNumber) is not AuthorizeEvent)
-            {
-                throw new UnauthorizedAccessException("Pass identification and authorization!");
             }
 
             _broker.AppendEvent(cardNumber, new WithdrawEvent());

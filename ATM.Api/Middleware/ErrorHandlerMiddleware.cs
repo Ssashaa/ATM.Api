@@ -32,21 +32,17 @@ public class ErrorHandlerMiddleware
                 .WithStatusCode(Status401Unauthorized)
                 .WithJsonContent(ex.Message);
         }
-        catch (Exception error)
+        catch (ArgumentOutOfRangeException ex)
         {
-            var response = context.Response;
-            response.ContentType = Application.Json;
-
-            var statusCode = error switch
-            {
-                KeyNotFoundException => Status404NotFound,
-                ArgumentOutOfRangeException => Status400BadRequest,
-                _ => Status500InternalServerError
-            };
-            response.StatusCode = statusCode;
-
-            var result = JsonSerializer.Serialize(new { message = error?.Message });
-            await response.WriteAsync(result);
+            await context.Response
+                .WithStatusCode(Status416RangeNotSatisfiable)
+                .WithJsonContent(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            await context.Response
+                .WithStatusCode(Status500InternalServerError)
+                .WithJsonContent(ex.Message);
         }
     }
 }
