@@ -29,9 +29,9 @@ namespace ATM.Api.Services
 
         public bool VerifyPassword(string cardNumber, string cardPassword)
         {
-            var @event = _broker.GetLastEvent(cardNumber);
+            var @event = _broker.FindEvent<CardInit>(cardNumber);
 
-            if (@event is not CardInit)
+            if (@event is not { })
             {
                 throw new UnauthorizedAccessException("Pass identification!");
             }
