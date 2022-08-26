@@ -1,4 +1,5 @@
-﻿using ATM.Api.Services.Interfaces;
+﻿using ATM.Api.Models.Events;
+using ATM.Api.Services.Interfaces;
 
 namespace ATM.Api.Services
 {
@@ -9,24 +10,63 @@ namespace ATM.Api.Services
 
         public AtmEventService(IAtmService atm, IAtmEventBroker broker) => (_atm, _broker) = (atm, broker);
 
-        public decimal GetCardBalance(string cardNumber)
-        {
-            throw new NotImplementedException();
-        }
-
         public bool IsCardExist(string cardNumber)
         {
-            throw new NotImplementedException();
+            if (_atm.IsCardExist(cardNumber))
+            {
+                _broker.StartStream(cardNumber, new AtmEvent());
+                _broker.AppendEvent(cardNumber, new CardInit());
+                return true;
+            }
+
+            throw new UnauthorizedAccessException("Pass identification and authorization!");
         }
 
         public bool VerifyPassword(string cardNumber, string cardPassword)
         {
-            throw new NotImplementedException();
+            var @event = _broker.FindEvent<CardInit>(cardNumber);
+
+            if (@event is not { })
+            {
+                throw new UnauthorizedAccessException("Pass identification!");
+            }
+
+            if (_atm.VerifyPassword(cardNumber, cardPassword))
+            {
+                _broker.AppendEvent(cardNumber, new CardAuthorized());
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public decimal GetCardBalance(string cardNumber)
+        {
+            var @event = _broker.GetLastEvent(cardNumber);
+
+            if (@event is not CardAuthorized)
+            {
+                throw new UnauthorizedAccessException("Pass identification and authorization!");
+            }
+
+            _broker.AppendEvent(cardNumber, new BalanceEvent());
+
+            return _atm.GetCardBalance(cardNumber);
         }
 
         public void Withdraw(string cardNumber, decimal amount)
         {
-            throw new NotImplementedException();
+            var @event = _broker.GetLastEvent(cardNumber);
+
+            if (@event is not CardAuthorized)
+            {
+                throw new UnauthorizedAccessException("Pass identification and authorization!");
+            }
+
+            _broker.AppendEvent(cardNumber, new WithdrawEvent());
+
+            _atm.Withdraw(cardNumber, amount);
         }
     }
 }
