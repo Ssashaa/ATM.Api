@@ -15,7 +15,7 @@ namespace ATM.Api.Services
             if (_atm.IsCardExist(cardNumber))
             {
                 _broker.StartStream(cardNumber, new CardInit());
-                _broker.AppendEvent(cardNumber, new CardInit());
+
                 return true;
             }
 
