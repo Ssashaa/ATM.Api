@@ -7,9 +7,12 @@ public static class ServicesCollectionExtensions
 {
     public static void ConfigureServices(this IServiceCollection services)
     {
-        services.AddSingleton<IAtmService, AtmService>();
+        services.AddSingleton<AtmService>();
         services.AddSingleton<IBankService, BankService>();
         services.AddSingleton<IAtmEventBroker, AtmEventBroker>();
-        services.Decorate<IAtmService, AtmEventService>();
+        services.AddSingleton<IAtmService, AtmEventService>(sp
+                => new AtmEventService(
+                        sp.GetRequiredService<AtmService>(),
+                        sp.GetRequiredService<IAtmEventBroker>()));
     }
 }

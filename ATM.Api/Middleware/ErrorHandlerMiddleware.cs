@@ -38,6 +38,12 @@ public class ErrorHandlerMiddleware
                 .WithStatusCode(Status416RangeNotSatisfiable)
                 .WithJsonContent(ex.Message);
         }
+        catch(KeyNotFoundException ex)
+        {
+            await context.Response
+                .WithStatusCode(Status404NotFound)
+                .WithJsonContent(ex.Message);
+        }
         catch (Exception ex)
         {
             await context.Response

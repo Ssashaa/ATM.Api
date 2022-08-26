@@ -1,3 +1,3 @@
 ﻿namespace ATM.Api.Models.Events;
 
-public record AtmEvent();
+public abstract record AtmEvent();
