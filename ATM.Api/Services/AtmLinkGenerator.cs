@@ -1,9 +1,11 @@
-﻿using ATM.Api.Controllers;
+﻿using ATM.Api.Extentions;
+using ATM.Api.Controllers;
 using ATM.Api.Controllers.Common;
+using ATM.Api.Services.Interfaces;
 
-namespace ATM.Api.Extentions;
+namespace ATM.Api.Services;
 
-public sealed class AtmLinkGenerator
+public sealed class AtmLinkGenerator : IAtmLinkGenerator
 {
     private readonly LinkGenerator _linkGenerator;
 
@@ -13,7 +15,7 @@ public sealed class AtmLinkGenerator
     {
         return endpointName switch
         {
-            nameof(AtmController.Init) => new[]
+            nameof (AtmController.Init) or nameof(AtmController.GetBalance) or nameof(AtmController.Withdraw) => new[]
             {
                 _linkGenerator.GetAssociatedEndpoint(httpContext, HttpMethod.Post, nameof(AtmController.Authorize))
             },
@@ -21,14 +23,6 @@ public sealed class AtmLinkGenerator
             {
                 _linkGenerator.GetAssociatedEndpoint(httpContext, HttpMethod.Get, nameof(AtmController.GetBalance), values),
                 _linkGenerator.GetAssociatedEndpoint(httpContext, HttpMethod.Post, nameof(AtmController.Withdraw))
-            },
-            nameof(AtmController.GetBalance) => new[]
-            {
-                _linkGenerator.GetAssociatedEndpoint(httpContext, HttpMethod.Post, nameof(AtmController.Authorize))
-            },
-            nameof(AtmController.Withdraw) => new[]
-            {
-                _linkGenerator.GetAssociatedEndpoint(httpContext, HttpMethod.Post, nameof(AtmController.Authorize))
             },
             _ => throw new ArgumentOutOfRangeException("Invalid data!")
         };

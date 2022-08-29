@@ -1,8 +1,8 @@
-﻿using ATM.Api.Extentions;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ATM.Api.Services.Interfaces;
 using ATM.Api.Controllers.Requests;
 using ATM.Api.Controllers.Responses;
+using ATM.Api.Services;
 
 namespace ATM.Api.Controllers;
 
@@ -11,16 +11,18 @@ namespace ATM.Api.Controllers;
 public class AtmController : Controller
 {
     private readonly IAtmService _atmService;
+    private readonly IAtmLinkGenerator _atmLinkGenerator;
 
-    public AtmController(IAtmService atmService)
+    public AtmController(IAtmService atmService, IAtmLinkGenerator atmLinkGenerator)
     {
         _atmService = atmService;
+        _atmLinkGenerator = atmLinkGenerator;
     }
 
     [HttpGet("{cardNumber}/init", Name =nameof(Init))]
-    public IActionResult Init([FromServices] AtmLinkGenerator linkGenerator, [FromRoute] string cardNumber)
+    public IActionResult Init([FromRoute] string cardNumber)
     {
-        var links = linkGenerator.GetAssociatedEndpoints(HttpContext, nameof(Init));
+        var links = _atmLinkGenerator.GetAssociatedEndpoints(HttpContext, nameof(Init));
 
         return _atmService.IsCardExist(cardNumber)
             ? Ok(new AtmResponce($"Your card in the system!", links))
@@ -28,9 +30,9 @@ public class AtmController : Controller
     }
 
     [HttpPost("authorize", Name =nameof(Authorize))]
-    public IActionResult Authorize([FromServices] AtmLinkGenerator linkGenerator, [FromBody] CardAuthorizeRequest request)
+    public IActionResult Authorize([FromBody] CardAuthorizeRequest request)
     {
-        var links = linkGenerator.GetAssociatedEndpoints(HttpContext, nameof(Authorize), new { request.CardNumber });
+        var links = _atmLinkGenerator.GetAssociatedEndpoints(HttpContext, nameof(Authorize), new { request.CardNumber });
 
         return _atmService.VerifyPassword(request.CardNumber, request.CardPassword)
             ? Ok(new AtmResponce("Your card is in the system!", links))
@@ -38,9 +40,9 @@ public class AtmController : Controller
     }
 
     [HttpGet("{cardNumber}/balance", Name = nameof(GetBalance))]
-    public IActionResult GetBalance([FromServices] AtmLinkGenerator linkGenerator, [FromRoute] string cardNumber)
+    public IActionResult GetBalance([FromRoute] string cardNumber)
     {
-        var links = linkGenerator.GetAssociatedEndpoints(HttpContext, nameof(GetBalance));
+        var links = _atmLinkGenerator.GetAssociatedEndpoints(HttpContext, nameof(GetBalance));
 
         var balance = _atmService.GetCardBalance(cardNumber);
 
@@ -48,9 +50,9 @@ public class AtmController : Controller
     }
 
     [HttpPost("withdraw", Name = nameof(Withdraw))]
-    public IActionResult Withdraw([FromServices] AtmLinkGenerator linkGenerator, [FromBody] CardWithdrawRequest request)
+    public IActionResult Withdraw([FromBody] CardWithdrawRequest request)
     {
-        var links = linkGenerator.GetAssociatedEndpoints(HttpContext, nameof(Withdraw));
+        var links = _atmLinkGenerator.GetAssociatedEndpoints(HttpContext, nameof(Withdraw));
 
         _atmService.Withdraw(request.CardNumber, request.Amount);
 
