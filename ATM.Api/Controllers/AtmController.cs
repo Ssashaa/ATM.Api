@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ATM.Api.Extentions;
+using Microsoft.AspNetCore.Mvc;
 using ATM.Api.Services.Interfaces;
 using ATM.Api.Controllers.Requests;
 using ATM.Api.Controllers.Responses;
@@ -16,19 +17,23 @@ public class AtmController : Controller
         _atmService = atmService;
     }
 
-    [HttpGet("{cardNumber}/init")]
-    public IActionResult Init([FromRoute] string cardNumber)
+    [HttpGet("{cardNumber}/init", Name =nameof(Init))]
+    public IActionResult Init([FromServices] AtmLinkGenerator linkGenerator, [FromRoute] string cardNumber)
     {
+        var links = linkGenerator.GetAssociatedEndpoints(HttpContext, nameof(Init));
+
         return _atmService.IsCardExist(cardNumber)
-            ? Ok(new AtmResponce($"Your card in the system!"))
+            ? Ok(new AtmResponce($"Your card in the system!", links))
             : NotFound(new AtmResponce("Your card isn't in the system!"));
     }
 
     [HttpPost("authorize")]
-    public IActionResult Authorize([FromBody] CardAuthorizeRequest request)
+    public IActionResult Authorize([FromServices] AtmLinkGenerator linkGenerator, [FromBody] CardAuthorizeRequest request)
     {
+        var links = linkGenerator.GetAssociatedEndpoints(HttpContext, nameof(Authorize));
+
         return _atmService.VerifyPassword(request.CardNumber, request.CardPassword)
-            ? Ok(new AtmResponce("Your card is in the system!"))
+            ? Ok(new AtmResponce("Your card is in the system!", links))
             : Unauthorized(new AtmResponce("Invalid password"!));
     }
 

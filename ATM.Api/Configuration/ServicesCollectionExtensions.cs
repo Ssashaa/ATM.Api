@@ -1,4 +1,5 @@
-﻿using ATM.Api.Services;
+﻿using ATM.Api.Extentions;
+using ATM.Api.Services;
 using ATM.Api.Services.Interfaces;
 
 namespace ATM.Api.Configuration;
@@ -14,5 +15,6 @@ public static class ServicesCollectionExtensions
                 => new AtmEventService(
                         sp.GetRequiredService<AtmService>(),
                         sp.GetRequiredService<IAtmEventBroker>()));
+        services.AddSingleton<AtmLinkGenerator>();
     }
 }
