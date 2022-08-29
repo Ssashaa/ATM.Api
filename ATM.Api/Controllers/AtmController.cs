@@ -27,29 +27,33 @@ public class AtmController : Controller
             : NotFound(new AtmResponce("Your card isn't in the system!"));
     }
 
-    [HttpPost("authorize")]
+    [HttpPost("authorize", Name =nameof(Authorize))]
     public IActionResult Authorize([FromServices] AtmLinkGenerator linkGenerator, [FromBody] CardAuthorizeRequest request)
     {
-        var links = linkGenerator.GetAssociatedEndpoints(HttpContext, nameof(Authorize));
+        var links = linkGenerator.GetAssociatedEndpoints(HttpContext, nameof(Authorize), new { request.CardNumber });
 
         return _atmService.VerifyPassword(request.CardNumber, request.CardPassword)
             ? Ok(new AtmResponce("Your card is in the system!", links))
             : Unauthorized(new AtmResponce("Invalid password"!));
     }
 
-    [HttpGet("{cardNumber}/balance")]
-    public IActionResult GetBalance([FromRoute] string cardNumber)
+    [HttpGet("{cardNumber}/balance", Name = nameof(GetBalance))]
+    public IActionResult GetBalance([FromServices] AtmLinkGenerator linkGenerator, [FromRoute] string cardNumber)
     {
+        var links = linkGenerator.GetAssociatedEndpoints(HttpContext, nameof(GetBalance));
+
         var balance = _atmService.GetCardBalance(cardNumber);
 
-        return Ok(new AtmResponce($"Balance is {balance}$"));
+        return Ok(new AtmResponce($"Balance is {balance}$", links));
     }
 
-    [HttpPost("withdraw")]
-    public IActionResult Withdraw([FromBody] CardWithdrawRequest request)
+    [HttpPost("withdraw", Name = nameof(Withdraw))]
+    public IActionResult Withdraw([FromServices] AtmLinkGenerator linkGenerator, [FromBody] CardWithdrawRequest request)
     {
+        var links = linkGenerator.GetAssociatedEndpoints(HttpContext, nameof(Withdraw));
+
         _atmService.Withdraw(request.CardNumber, request.Amount);
 
-        return Ok(new AtmResponce("The operation was successful!"));
+        return Ok(new AtmResponce("The operation was successful!", links));
     }
 }
