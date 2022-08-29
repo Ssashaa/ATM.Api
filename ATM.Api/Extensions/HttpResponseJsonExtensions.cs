@@ -1,6 +1,6 @@
 ﻿namespace ATM.Api.Extentions
 {
-    public static class HttpResponseJsonExtentions
+    public static class HttpResponseJsonExtensions
     {
         public static HttpResponse WithStatusCode(this HttpResponse response, int statusCode)
         {
